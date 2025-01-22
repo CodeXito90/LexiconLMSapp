@@ -1,0 +1,93 @@
+﻿@page "/courses"
+@rendermode InteractiveWebAssembly
+@using LMS.Blazor.Client.Services
+@using LMS.Shared.DTOs
+@using Microsoft.AspNetCore.Authorization
+@using Microsoft.AspNetCore.Components.Authorization
+@attribute [Authorize]
+
+<h1>Courses</h1>
+
+<button class="btn btn-primary" @onclick="LoadCourses">Get Courses</button>
+<button class="btn btn-primary" @onclick="CreateCourse">Create Course</button>
+
+@if (courses == null)
+{
+    <p>Loading...</p>
+}
+else
+{
+    <table class="table">
+        <thead>
+            <tr>
+                <th>Name</th>
+                <th>Description</th>
+                <th>Start Date</th>
+                <th>End Date</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var course in courses)
+            {
+                <tr>
+                    <td>@course.Name</td>
+                    <td>@course.Description</td>
+                    <td>@course.StartDate.ToShortDateString()</td>
+                    <td>@course.EndDate.ToShortDateString()</td>
+                    <td>
+                        <button @onclick="() => EditCourse(course.CourseId)">Edit</button>
+                        @* <button @onclick="() => DeleteCourse(course.CourseId)">Delete</button> *@
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}
+
+@code {
+    [Inject]
+    private IApiService _apiService { get; set; } = default!;
+
+    private List<CourseDto>? courses;
+    private CourseDto? courseDto;
+
+    private async Task LoadCourses()
+    {
+        courses = (await _apiService.GetAsync<IEnumerable<CourseDto>>("api/courses"))?.ToList() ?? [];
+    }
+
+    private async Task CreateCourse()
+    {
+        var newCourse = new CreateCourseDto
+            {
+                Name = "New Course",
+                Description = "This is a new course",
+                StartDate = DateTime.Today,
+                EndDate = DateTime.Today.AddMonths(3)
+            };
+
+        courseDto = await _apiService.PostAsync<CreateCourseDto, CourseDto>("api/courses", newCourse);
+        await LoadCourses(); // Refresh the list after creating a new course
+    }
+
+    private async Task EditCourse(int courseId)
+    {
+        var courseToUpdate = new UpdateCourseDto
+            {
+                Name = "Updated Course Name",
+                Description = "Updated Description",
+                StartDate = DateTime.Today,
+                EndDate = DateTime.Today.AddMonths(3)
+            };
+
+        courseDto = await _apiService.PostAsync<UpdateCourseDto, CourseDto>($"api/courses/{courseId}", courseToUpdate);
+        await LoadCourses(); // Refresh the list after updating
+    }
+
+    // private async Task DeleteCourse(int courseId)
+    // {
+    //     await _apiService.DeleteAsync($"api/courses/{courseId}");
+    //     await LoadCourses(); // Refresh the list after deleting
+    // }
+}
