@@ -18,8 +18,11 @@
         <button class="btn btn-primary" @onclick="SetActiveTabUsers">Users</button>
         <button class="btn btn-primary" @onclick="SetActiveTabActivities">Activities</button>
         <button class="btn btn-primary" @onclick="SetActiveTabModules">Modules</button> 
+        <button class="btn btn-primary" @onclick="SetActiveTabDocuments">Documents</button>
+
 
     </div>
+
 
     <!-- Modules Tab -->
     @if (activeTab == "modules")
@@ -67,6 +70,56 @@
             }
         </div>
     }
+
+    <!-- documents Tab -->
+    @if (activeTab == "documents")
+    {
+        <div class="dashboard-section">
+            <h2>Documents</h2>
+            <button class="btn btn-success" @onclick="ShowCreateDocumentModal">Add New Document</button>
+
+            @if (documents == null)
+            {
+                <p>Loading documents...</p>
+            }
+            else if (!documents.Any())
+            {
+                <p>No documents found.</p>
+            }
+            else
+            {
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th>Name</th>
+                            <th>Description</th>
+                            <th>Type</th>
+                            <th>Uploaded By</th>
+                            <th>Timestamp</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var document in documents)
+                        {
+                            <tr>
+                                <td>@document.Name</td>
+                                <td>@document.Description</td>
+                                <td>@document.Type</td>
+                                <td>@document.ApplicationUserId</td>
+                                <td>@document.TimeStamp.ToString("yyyy-MM-dd HH:mm")</td>
+                                <td>
+                                    <button class="btn btn-warning" @onclick="() => ShowEditDocumentModal(document)">Edit</button>
+                                    @* <button class="btn btn-danger" @onclick="() => DeleteDocument(document.Id)">Delete</button> *@
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            }
+        </div>
+    }
+
 
     <!-- Courses Tab -->
     @if (activeTab == "courses")
@@ -223,6 +276,7 @@
     private List<UserDto>? users;
     private List<ActivityDto>? activities;
     private List<ModuleDto>? modules;
+    private List<DocumentDto>? documents;
 
     protected override async Task OnInitializedAsync()
     {
@@ -269,6 +323,12 @@
 
     }
 
+    private async Task LoadDocuments()
+    {
+        //  API-koppling för att ladda dokument
+        documents = await _apiService.GetAsync<List<DocumentDto>>("api/documents");
+    }
+
     private void SetActiveTabCourses()
     {
         activeTab = "courses";
@@ -288,6 +348,11 @@
         activeTab = "modules"; 
     }
 
+    private void SetActiveTabDocuments()
+    {
+        activeTab = "documents"; 
+    }
+
     private void ShowCreateCourseModal()
     {
         // Implement logic to show a modal for creating a course
@@ -297,6 +362,21 @@
     {
         // Implement logic to show a modal for editing a course
     }
+
+    private void ShowCreateDocumentModal()
+    {
+        // Logik för att visa modal för att skapa dokument
+        Console.WriteLine("ShowCreateDocumentModal triggered");
+    }
+
+    private void ShowEditDocumentModal(DocumentDto document)
+    {
+        // Logik för att visa modal för att redigera ett dokument
+        Console.WriteLine($"ShowEditDocumentModal triggered for DocumentId: {document.Id}");
+    }
+
+   
+
 
     // private async Task DeleteCourse(int courseId)
     // {
