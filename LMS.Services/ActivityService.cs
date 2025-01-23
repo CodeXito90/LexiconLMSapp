@@ -27,47 +27,25 @@ namespace LMS.Services
             Activity? activity = await _uow.Activity.GetActivityByIdAsync(activityId);
             return _mapper.Map<ActivityDto>(activity);
         }
-        public async Task<ActivityDto> CreateActivityAsync(ActivityDto activityDto)
+        public Task<ActivityDto> CreateActivityAsync(ActivityDto activityDto)
         {
-            var activity = _mapper.Map<Activity>(activityDto);
-            _uow.Activity.Create(activity);
-            await _uow.CompleteASync();
-            return _mapper.Map<ActivityDto>(activity);
+            throw new NotImplementedException();
+        }
+
+        public Task<bool> DeleteActivityAsync(int activityId)
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task<IEnumerable<ActivityDto>> GetActivitiesByModuleIdAsync(int moduleId)
+        {
+            throw new NotImplementedException();
         }
 
 
-        public async Task<bool> DeleteActivityAsync(int activityId)
+        public Task<bool> UpdateActivityAsync(int activityId, ActivityDto activityDto)
         {
-            var activity = await _uow.Activity.GetActivityByIdAsync(activityId);
-            if (activity == null)
-            {
-                return false; // Activity not found
-            }
-
-            _uow.Activity.Delete(activity);
-            await _uow.CompleteASync();
-            return true;
-        }
-
-        //public async Task<IEnumerable<ActivityDto>> GetActivitiesByModuleIdAsync(int moduleId)
-        //{
-        //    var activities = await _uow.Activity.GetActivitiesByModuleIdAsync(moduleId);
-        //    return _mapper.Map<IEnumerable<ActivityDto>>(activities);
-        //}
-
-
-        public async Task<bool> UpdateActivityAsync(int activityId, ActivityDto activityDto)
-        {
-            var activity = await _uow.Activity.GetActivityByIdAsync(activityId);
-            if (activity == null)
-            {
-                return false; // Activity not found
-            }
-
-            _mapper.Map(activityDto, activity); // Update the existing entity with new values
-            _uow.Activity.Update(activity);
-            await _uow.CompleteASync();
-            return true;
+            throw new NotImplementedException();
         }
     }
 }

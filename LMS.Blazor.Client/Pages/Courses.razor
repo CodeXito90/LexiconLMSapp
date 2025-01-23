@@ -1,93 +1,168 @@
 ﻿@page "/courses"
 @rendermode InteractiveWebAssembly
-@using LMS.Blazor.Client.Services
 @using LMS.Shared.DTOs
 @using Microsoft.AspNetCore.Authorization
 @using Microsoft.AspNetCore.Components.Authorization
 @attribute [Authorize]
 
-<h1>Courses</h1>
+<div class="dashboard-container">
+    <!-- Header -->
+    <div class="dashboard-header">
+        <h1>Welcome back, @userName!</h1>
+    </div>
 
-<button class="btn btn-primary" @onclick="LoadCourses">Get Courses</button>
-<button class="btn btn-primary" @onclick="CreateCourse">Create Course</button>
+    <!-- Continue Learning Section -->
+    <div class="dashboard-section">
+        <h2>Continue Learning</h2>
+        @if (ongoingCourses == null)
+        {
+            <p>Loading ongoing courses...</p>
+        }
+        else if (!ongoingCourses.Any())
+        {
+            <p>No ongoing courses.</p>
+        }
+        else
+        {
+            <div class="course-list">
+                @foreach (var course in ongoingCourses)
+                {
+                    <div class="course-card">
+                        <h3>@course.Name</h3>
+                        <p>@course.Description</p>
+                        <p>Progress: 3h55min</p> <!-- Replace with actual progress -->
+                        <button @onclick="() => NavigateToCourse(course.CourseId)">Continue</button>
+                    </div>
+                }
+            </div>
+        }
+    </div>
 
-@if (courses == null)
-{
-    <p>Loading...</p>
-}
-else
-{
-    <table class="table">
-        <thead>
-            <tr>
-                <th>Name</th>
-                <th>Description</th>
-                <th>Start Date</th>
-                <th>End Date</th>
-                <th>Actions</th>
-            </tr>
-        </thead>
-        <tbody>
-            @foreach (var course in courses)
-            {
-                <tr>
-                    <td>@course.Name</td>
-                    <td>@course.Description</td>
-                    <td>@course.StartDate.ToShortDateString()</td>
-                    <td>@course.EndDate.ToShortDateString()</td>
-                    <td>
-                        <button @onclick="() => EditCourse(course.CourseId)">Edit</button>
-                        @* <button @onclick="() => DeleteCourse(course.CourseId)">Delete</button> *@
-                    </td>
-                </tr>
-            }
-        </tbody>
-    </table>
-}
+    <!-- Recent Activities Section -->
+    <div class="dashboard-section">
+        <h2>Recent Activities</h2>
+        @if (recentActivities == null)
+        {
+            <p>Loading recent activities...</p>
+        }
+        else if (!recentActivities.Any())
+        {
+            <p>No recent activities.</p>
+        }
+        else
+        {
+            <div class="activity-list">
+                @foreach (var activity in recentActivities)
+                {
+                    <div class="activity-card">
+                        <h4>@activity.Name</h4>
+                        <p>@activity.Description</p>
+                        <p>Due: @activity.EndDate.ToShortDateString()</p>
+                    </div>
+                }
+            </div>
+        }
+    </div>
+
+    <!-- Quick Links Section -->
+    <div class="dashboard-section">
+        <h2>Quick Links</h2>
+        <div class="quick-links">
+            <button @onclick="NavigateToCourses">Courses</button>
+            <button @onclick="NavigateToAnnouncements">Announcements</button>
+            <button @onclick="NavigateToSettings">Settings</button>
+        </div>
+    </div>
+</div>
 
 @code {
     [Inject]
-    private IApiService _apiService { get; set; } = default!;
+    private NavigationManager NavigationManager { get; set; } = default!;
 
-    private List<CourseDto>? courses;
-    private CourseDto? courseDto;
+    [Inject]
+    private AuthenticationStateProvider AuthenticationStateProvider { get; set; } = default!;
 
-    private async Task LoadCourses()
+    private List<CourseDto>? ongoingCourses;
+    private List<ActivityDto>? recentActivities;
+
+    private string userName = "Loading...";
+
+    protected override async Task OnInitializedAsync()// dynamically get the logged in users name
     {
-        courses = (await _apiService.GetAsync<IEnumerable<CourseDto>>("api/courses"))?.ToList() ?? [];
+        var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+        var user = authState.User;
+
+        if (user.Identity?.IsAuthenticated == true)
+        {
+            userName = $"{user.FindFirst("given_name")?.Value}, {user.FindFirst("role")?.Value}";
+        }
+
+        await LoadDashboardData();
     }
 
-    private async Task CreateCourse()
+    private async Task LoadDashboardData()
     {
-        var newCourse = new CreateCourseDto
+        // Simulate loading delay
+        await Task.Delay(500);
+
+        // Mock data for ongoing courses
+        ongoingCourses = new List<CourseDto>
+        {
+            new CourseDto
             {
-                Name = "New Course",
-                Description = "This is a new course",
-                StartDate = DateTime.Today,
-                EndDate = DateTime.Today.AddMonths(3)
-            };
-
-        courseDto = await _apiService.PostAsync<CreateCourseDto, CourseDto>("api/courses", newCourse);
-        await LoadCourses(); // Refresh the list after creating a new course
-    }
-
-    private async Task EditCourse(int courseId)
-    {
-        var courseToUpdate = new UpdateCourseDto
+                CourseId = 1,
+                Name = "ASP.NET Core Web API",
+                Description = "Learn how to build RESTful APIs with ASP.NET Core.",
+                StartDate = DateTime.Today.AddDays(-10),
+                EndDate = DateTime.Today.AddDays(20)
+            },
+            new CourseDto
             {
-                Name = "Updated Course Name",
-                Description = "Updated Description",
-                StartDate = DateTime.Today,
-                EndDate = DateTime.Today.AddMonths(3)
-            };
+                CourseId = 2,
+                Name = "Blazor Fundamentals",
+                Description = "Master the basics of Blazor for building interactive web apps.",
+                StartDate = DateTime.Today.AddDays(-5),
+                EndDate = DateTime.Today.AddDays(25)
+            }
+        };
 
-        courseDto = await _apiService.PostAsync<UpdateCourseDto, CourseDto>($"api/courses/{courseId}", courseToUpdate);
-        await LoadCourses(); // Refresh the list after updating
+        // Mock data for recent activities
+        recentActivities = new List<ActivityDto>
+        {
+            new ActivityDto
+            {
+                ActivityId = 1,
+                Name = "Submit Assignment 1",
+                Description = "Complete and submit the first assignment for ASP.NET Core.",
+                EndDate = DateTime.Today.AddDays(3)
+            },
+            new ActivityDto
+            {
+                ActivityId = 2,
+                Name = "Quiz: Blazor Basics",
+                Description = "Take the quiz on Blazor fundamentals.",
+                EndDate = DateTime.Today.AddDays(5)
+            }
+        };
     }
 
-    // private async Task DeleteCourse(int courseId)
-    // {
-    //     await _apiService.DeleteAsync($"api/courses/{courseId}");
-    //     await LoadCourses(); // Refresh the list after deleting
-    // }
+    private void NavigateToCourse(int courseId)
+    {
+        NavigationManager.NavigateTo($"/courses/{courseId}");
+    }
+
+    private void NavigateToCourses()
+    {
+        NavigationManager.NavigateTo("/courses");
+    }
+
+    private void NavigateToAnnouncements()
+    {
+        NavigationManager.NavigateTo("/announcements");
+    }
+
+    private void NavigateToSettings()
+    {
+        NavigationManager.NavigateTo("/settings");
+    }
 }

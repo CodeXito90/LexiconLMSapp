@@ -1,0 +1,281 @@
+﻿@page "/teacher-dashboard"
+@rendermode InteractiveWebAssembly
+@using LMS.Blazor.Client.Services
+@using LMS.Shared.DTOs
+@using Microsoft.AspNetCore.Authorization
+@using Microsoft.AspNetCore.Components.Authorization
+@* @attribute [Authorize(Roles = "Teacher")] *@
+
+<div class="dashboard-container">
+    <!-- Header -->
+    <div class="dashboard-header">
+        <h1>Welcome back, @userName!</h1>
+    </div>
+
+    <!-- Tabs for Navigation -->
+    <div class="dashboard-tabs">
+        <button class="btn btn-primary" @onclick="SetActiveTabCourses">Courses</button>
+        <button class="btn btn-primary" @onclick="SetActiveTabUsers">Users</button>
+        <button class="btn btn-primary" @onclick="SetActiveTabActivities">Activities</button>
+    </div>
+
+    <!-- Courses Tab -->
+    @if (activeTab == "courses")
+    {
+        <div class="dashboard-section">
+            <h2>Courses</h2>
+            <button class="btn btn-success" @onclick="ShowCreateCourseModal">Create New Course</button>
+
+            @if (courses == null)
+            {
+                <p>Loading courses...</p>
+            }
+            else if (!courses.Any())
+            {
+                <p>No courses found.</p>
+            }
+            else
+            {
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th>Name</th>
+                            <th>Description</th>
+                            <th>Start Date</th>
+                            <th>End Date</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var course in courses)
+                        {
+                            <tr>
+                                <td>@course.Name</td>
+                                <td>@course.Description</td>
+                                <td>@course.StartDate.ToShortDateString()</td>
+                                <td>@course.EndDate.ToShortDateString()</td>
+                                <td>
+                                    <button class="btn btn-warning" @onclick="() => ShowEditCourseModal(course)">Edit</button>
+                                    @* <button class="btn btn-danger" @onclick="() => DeleteCourse(course.CourseId)">Delete</button> *@
+                                    <button class="btn btn-info" @onclick="() => ViewModules(course.CourseId)">View Modules</button>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            }
+        </div>
+    }
+
+    <!-- Users Tab -->
+    @if (activeTab == "users")
+    {
+        <div class="dashboard-section">
+            <h2>Users</h2>
+            <button class="btn btn-success" @onclick="ShowCreateUserModal">Create New User</button>
+
+            @if (users == null)
+            {
+                <p>Loading users...</p>
+            }
+            else if (!users.Any())
+            {
+                <p>No users found.</p>
+            }
+            else
+            {
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th>Name</th>
+                            <th>Email</th>
+                            <th>Role</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var user in users)
+                        {
+                            <tr>
+                                <td>@user.FirstName @user.LastName</td>
+                                <td>@user.Email</td>
+                                <td>@user.Role</td>
+                                <td>
+                                    <button class="btn btn-warning" @onclick="() => ShowEditUserModal(user)">Edit</button>
+                                    @* <button class="btn btn-danger" @onclick="() => DeleteUser(user.Id)">Delete</button> *@
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            }
+        </div>
+    }
+
+    <!-- Activities Tab -->
+    @if (activeTab == "activities")
+    {
+        <div class="dashboard-section">
+            <h2>Activities</h2>
+            <button class="btn btn-success" @onclick="ShowCreateActivityModal">Create New Activity</button>
+
+            @if (activities == null)
+            {
+                <p>Loading activities...</p>
+            }
+            else if (!activities.Any())
+            {
+                <p>No activities found.</p>
+            }
+            else
+            {
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th>Title</th>
+                            <th>Description</th>
+                            <th>Due Date</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var activity in activities)
+                        {
+                            <tr>
+                                <td>@activity.Name</td>
+                                <td>@activity.Description</td>
+                                <td>@activity.EndDate.ToShortDateString()</td>
+                                <td>
+                                    <button class="btn btn-warning" @onclick="() => ShowEditActivityModal(activity)">Edit</button>
+                                    @* <button class="btn btn-danger" @onclick="() => DeleteActivity(activity.ActivityId)">Delete</button> *@
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            }
+        </div>
+    }
+</div>
+
+@code {
+    [Inject]
+    private IApiService _apiService { get; set; } = default!;
+
+    [Inject]
+    private NavigationManager NavigationManager { get; set; } = default!;
+
+    [Inject]
+    private AuthenticationStateProvider AuthenticationStateProvider { get; set; } = default!;
+
+    private string userName = "Loading...";
+    private string activeTab = "courses"; // Default tab
+    private List<CourseDto>? courses;
+    private List<UserDto>? users;
+    private List<ActivityDto>? activities;
+
+    protected override async Task OnInitializedAsync()
+    {
+        var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+        var user = authState.User;
+
+        if (user.Identity?.IsAuthenticated == true)
+        {
+            userName = $"{user.FindFirst("given_name")?.Value}, {user.FindFirst("role")?.Value}";
+        }
+
+        await LoadDashboardData();
+    }
+
+    private async Task LoadDashboardData()
+    {
+        // Mock data for courses
+        courses = new List<CourseDto>
+    {
+        new CourseDto { CourseId = 1, Name = "ASP.NET Core", Description = "Learn ASP.NET Core", StartDate = DateTime.Today, EndDate = DateTime.Today.AddMonths(3) },
+        new CourseDto { CourseId = 2, Name = "Blazor", Description = "Learn Blazor", StartDate = DateTime.Today, EndDate = DateTime.Today.AddMonths(2) }
+    };
+
+        // Mock data for users
+        users = new List<UserDto>
+    {
+        new UserDto { Id = "1", FirstName = "Anna", LastName = "Student", Email = "anna@example.com", Role = "Student" },
+        new UserDto { Id = "2", FirstName = "John", LastName = "Teacher", Email = "john@example.com", Role = "Teacher" }
+    };
+
+        // Mock data for activities
+        activities = new List<ActivityDto>
+    {
+        new ActivityDto { /* ActivityId = 1, */ Name = "Assignment 1", Description = "Complete Assignment 1", EndDate = DateTime.Today.AddDays(7) },
+        new ActivityDto { /* ActivityId = 2, */ Name = "Quiz 1", Description = "Take Quiz 1", EndDate = DateTime.Today.AddDays(14) }
+    };
+    }
+
+    private void SetActiveTabCourses()
+    {
+        activeTab = "courses";
+    }
+
+    private void SetActiveTabUsers()
+    {
+        activeTab = "users";
+    }
+
+    private void SetActiveTabActivities()
+    {
+        activeTab = "activities";
+    }
+
+    private void ShowCreateCourseModal()
+    {
+        // Implement logic to show a modal for creating a course
+    }
+
+    private void ShowEditCourseModal(CourseDto course)
+    {
+        // Implement logic to show a modal for editing a course
+    }
+
+    // private async Task DeleteCourse(int courseId)
+    // {
+    //     await _apiService.DeleteAsync($"api/courses/{courseId}");
+    //     await LoadDashboardData();
+    // }
+
+    private void ViewModules(int courseId)
+    {
+        NavigationManager.NavigateTo($"/courses/{courseId}/modules");
+    }
+
+    private void ShowCreateUserModal()
+    {
+        // Implement logic to show a modal for creating a user
+    }
+
+    private void ShowEditUserModal(UserDto user)
+    {
+        // Implement logic to show a modal for editing a user
+    }
+
+    // private async Task DeleteUser(string userId)
+    // {
+    //     await _apiService.DeleteAsync($"api/users/{userId}");
+    //     await LoadDashboardData();
+    // }
+
+    private void ShowCreateActivityModal()
+    {
+        // Implement logic to show a modal for creating an activity
+    }
+
+    private void ShowEditActivityModal(ActivityDto activity)
+    {
+        // Implement logic to show a modal for editing an activity
+    }
+
+    // private async Task DeleteActivity(int activityId)
+    // {
+    //     await _apiService.DeleteAsync($"api/activities/{activityId}");
+    //     await LoadDashboardData();
+    // }
+}
