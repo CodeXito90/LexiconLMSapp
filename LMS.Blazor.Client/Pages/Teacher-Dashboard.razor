@@ -17,7 +17,56 @@
         <button class="btn btn-primary" @onclick="SetActiveTabCourses">Courses</button>
         <button class="btn btn-primary" @onclick="SetActiveTabUsers">Users</button>
         <button class="btn btn-primary" @onclick="SetActiveTabActivities">Activities</button>
+        <button class="btn btn-primary" @onclick="SetActiveTabModules">Modules</button> 
+
     </div>
+
+    <!-- Modules Tab -->
+    @if (activeTab == "modules")
+    {
+        <div class="dashboard-section">
+            <h2>Modules</h2>
+            <button class="btn btn-success" @onclick="ShowCreateModuleModal">Create New Module</button>
+
+            @if (modules == null)
+            {
+                <p>Loading modules...</p>
+            }
+            else if (!modules.Any())
+            {
+                <p>No modules found.</p>
+            }
+            else
+            {
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th>Name</th>
+                            <th>Description</th>
+                            <th>Start Date</th>
+                            <th>End Date</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var module in modules)
+                        {
+                            <tr>
+                                <td>@module.Name</td>
+                                <td>@module.Description</td>
+                                <td>@module.StartDate.ToShortDateString()</td>
+                                <td>@module.EndDate.ToShortDateString()</td>
+                                <td>
+                                    <button class="btn btn-warning" @onclick="() => ShowEditModuleModal(module)">Edit</button>
+                                    @* <button class="btn btn-danger" @onclick="() => DeleteModule(module.ModuleId)">Delete</button> *@
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            }
+        </div>
+    }
 
     <!-- Courses Tab -->
     @if (activeTab == "courses")
@@ -173,6 +222,7 @@
     private List<CourseDto>? courses;
     private List<UserDto>? users;
     private List<ActivityDto>? activities;
+    private List<ModuleDto>? modules;
 
     protected override async Task OnInitializedAsync()
     {
@@ -191,24 +241,32 @@
     {
         // Mock data for courses
         courses = new List<CourseDto>
-    {
-        new CourseDto { CourseId = 1, Name = "ASP.NET Core", Description = "Learn ASP.NET Core", StartDate = DateTime.Today, EndDate = DateTime.Today.AddMonths(3) },
-        new CourseDto { CourseId = 2, Name = "Blazor", Description = "Learn Blazor", StartDate = DateTime.Today, EndDate = DateTime.Today.AddMonths(2) }
-    };
+        {
+            new CourseDto { CourseId = 1, Name = "ASP.NET Core", Description = "Learn ASP.NET Core", StartDate = DateTime.Today, EndDate = DateTime.Today.AddMonths(3) },
+            new CourseDto { CourseId = 2, Name = "Blazor", Description = "Learn Blazor", StartDate = DateTime.Today, EndDate = DateTime.Today.AddMonths(2) }
+        };
 
-        // Mock data for users
-        users = new List<UserDto>
-    {
-        new UserDto { Id = "1", FirstName = "Anna", LastName = "Student", Email = "anna@example.com", Role = "Student" },
-        new UserDto { Id = "2", FirstName = "John", LastName = "Teacher", Email = "john@example.com", Role = "Teacher" }
-    };
+            // Mock data for users
+            users = new List<UserDto>
+        {
+            new UserDto { Id = "1", FirstName = "Anna", LastName = "Student", Email = "anna@example.com", Role = "Student" },
+            new UserDto { Id = "2", FirstName = "John", LastName = "Teacher", Email = "john@example.com", Role = "Teacher" }
+        };
 
-        // Mock data for activities
-        activities = new List<ActivityDto>
-    {
-        new ActivityDto { /* ActivityId = 1, */ Name = "Assignment 1", Description = "Complete Assignment 1", EndDate = DateTime.Today.AddDays(7) },
-        new ActivityDto { /* ActivityId = 2, */ Name = "Quiz 1", Description = "Take Quiz 1", EndDate = DateTime.Today.AddDays(14) }
-    };
+            // Mock data for activities
+            activities = new List<ActivityDto>
+        {
+            new ActivityDto { /* ActivityId = 1, */ Name = "Assignment 1", Description = "Complete Assignment 1", EndDate = DateTime.Today.AddDays(7) },
+            new ActivityDto { /* ActivityId = 2, */ Name = "Quiz 1", Description = "Take Quiz 1", EndDate = DateTime.Today.AddDays(14) }
+        };
+
+        // Mock data for modules
+        modules = new List<ModuleDto>
+        {
+            new ModuleDto { ModuleId = 1, Name = "Module 1", Description = "Introduction to ASP.NET", StartDate = DateTime.Today, EndDate = DateTime.Today.AddMonths(1) },
+            new ModuleDto { ModuleId = 2, Name = "Module 2", Description = "Advanced Blazor Topics", StartDate = DateTime.Today.AddMonths(1), EndDate = DateTime.Today.AddMonths(2) }
+        };
+
     }
 
     private void SetActiveTabCourses()
@@ -224,6 +282,10 @@
     private void SetActiveTabActivities()
     {
         activeTab = "activities";
+    }
+    private void SetActiveTabModules()
+    {
+        activeTab = "modules"; 
     }
 
     private void ShowCreateCourseModal()
@@ -272,6 +334,18 @@
     {
         // Implement logic to show a modal for editing an activity
     }
+    private void ShowCreateModuleModal()
+    {
+        // Logic to open the modal for creating a new module
+        Console.WriteLine("ShowCreateModuleModal triggered");
+    }
+
+    private void ShowEditModuleModal(ModuleDto module)
+    {
+        // Logic to open the modal for editing an existing module
+        Console.WriteLine($"ShowEditModuleModal triggered for ModuleId: {module.ModuleId}");
+    }
+
 
     // private async Task DeleteActivity(int activityId)
     // {
