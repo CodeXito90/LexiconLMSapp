@@ -1,0 +1,53 @@
+﻿@using LMS.Shared.DTOs
+
+<div class="dashboard-section">
+    <h2>Courses</h2>
+    <button class="btn btn-success" @onclick="OnCreateCourse">Create New Course</button>
+
+    @if (Courses == null)
+    {
+        <p>Loading courses...</p>
+    }
+    else if (!Courses.Any())
+    {
+        <p>No courses found.</p>
+    }
+    else
+    {
+        <table class="table">
+            <thead>
+                <tr>
+                    <th>Name</th>
+                    <th>Description</th>
+                    <th>Start Date</th>
+                    <th>End Date</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var course in Courses)
+                {
+                    <tr>
+                        <td>@course.Name</td>
+                        <td>@course.Description</td>
+                        <td>@course.StartDate.ToShortDateString()</td>
+                        <td>@course.EndDate.ToShortDateString()</td>
+                        <td>
+                            @* <button class="btn btn-warning" @onclick="() => OnEditCourse(course)">Edit</button>
+                            <button class="btn btn-danger" @onclick="() => OnDeleteCourse(course.CourseId)">Delete</button>
+                            <button class="btn btn-info" @onclick="() => OnViewModules(course.CourseId)">View Modules</button> *@
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    }
+</div>
+
+@code {
+    [Parameter] public List<CourseDto> Courses { get; set; }
+    [Parameter] public EventCallback<int> OnDeleteCourse { get; set; }
+    [Parameter] public EventCallback OnCreateCourse { get; set; }
+    [Parameter] public EventCallback<CourseDto> OnEditCourse { get; set; }
+    [Parameter] public EventCallback<int> OnViewModules { get; set; }
+}

@@ -1,0 +1,49 @@
+﻿@using LMS.Shared.DTOs
+
+<div class="dashboard-section">
+    <h2>Users</h2>
+    <button class="btn btn-success" @onclick="OnCreateUser">Create New User</button>
+
+    @if (Users == null)
+    {
+        <p>Loading users...</p>
+    }
+    else if (!Users.Any())
+    {
+        <p>No users found.</p>
+    }
+    else
+    {
+        <table class="table">
+            <thead>
+                <tr>
+                    <th>Name</th>
+                    <th>Email</th>
+                    <th>Role</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var user in Users)
+                {
+                    <tr>
+                        <td>@user.FirstName @user.LastName</td>
+                        <td>@user.Email</td>
+                        <td>@user.Role</td>
+                        <td>
+                       @*      <button class="btn btn-warning" @onclick="() => OnEditUser(user)">Edit</button>
+                            <button class="btn btn-danger" @onclick="() => OnDeleteUser(user.Id)">Delete</button> *@
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    }
+</div>
+
+@code {
+    [Parameter] public List<UserDto> Users { get; set; }
+    [Parameter] public EventCallback OnCreateUser { get; set; }
+    [Parameter] public EventCallback<string> OnDeleteUser { get; set; }
+    [Parameter] public EventCallback<UserDto> OnEditUser { get; set; }
+}

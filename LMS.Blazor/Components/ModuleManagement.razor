@@ -1,0 +1,58 @@
+﻿@using LMS.Shared.DTOs
+
+<div class="dashboard-section">
+    <h2>Modules</h2>
+    <button class="btn btn-success" @onclick="OnCreateModule">Create New Module</button>
+
+    @if (Modules == null)
+    {
+        <p>Loading modules...</p>
+    }
+    else if (!Modules.Any())
+    {
+        <p>No modules found.</p>
+    }
+    else
+    {
+        <table class="table">
+            <thead>
+                <tr>
+                    <th>Name</th>
+                    <th>Description</th>
+                    <th>Course</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var module in Modules)
+                {
+                    <tr>
+                        <td>@module.Name</td>
+                        <td>@module.Description</td>
+                        <td>@GetCourseName(module.ModuleId)</td>
+                        <td>
+                      @*       <button class="btn btn-warning" @onclick="() => OnEditModule(module)">Edit</button>
+                            <button class="btn btn-danger" @onclick="() => OnDeleteModule(module.ModuleId)">Delete</button>
+                            <button class="btn btn-info" @onclick="() => OnViewActivities(module.ModuleId)">View Activities</button> *@
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    }
+</div>
+
+@code {
+    [Parameter] public List<ModuleDto> Modules { get; set; }
+    [Parameter] public List<CourseDto> Courses { get; set; }
+    [Parameter] public EventCallback<int> OnDeleteModule { get; set; }
+    [Parameter] public EventCallback OnCreateModule { get; set; }
+    [Parameter] public EventCallback<ModuleDto> OnEditModule { get; set; }
+    [Parameter] public EventCallback<int> OnViewActivities { get; set; }
+
+    private string GetCourseName(int courseId)
+    {
+        var course = Courses.FirstOrDefault(c => c.CourseId == courseId);
+        return course?.Name ?? "N/A";
+    }
+}

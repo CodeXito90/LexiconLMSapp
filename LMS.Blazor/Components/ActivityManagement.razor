@@ -1,0 +1,58 @@
+﻿@using LMS.Shared.DTOs
+
+<div class="dashboard-section">
+    <h2>Activities</h2>
+    <button class="btn btn-success" @onclick="OnCreateActivity">Create New Activity</button>
+
+    @if (Activities == null)
+    {
+        <p>Loading activities...</p>
+    }
+    else if (!Activities.Any())
+    {
+        <p>No activities found.</p>
+    }
+    else
+    {
+        <table class="table">
+            <thead>
+                <tr>
+                    <th>Name</th>
+                    <th>Description</th>
+                    <th>End Date</th>
+                    <th>Module</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var activity in Activities)
+                {
+                    <tr>
+                        <td>@activity.Name</td>
+                        <td>@activity.Description</td>
+                        <td>@activity.EndDate.ToShortDateString()</td>
+                        <td>@GetModuleName(activity.ActivityId)</td>
+                        <td>
+                            @* <button class="btn btn-warning" @onclick="() => OnEditActivity(activity)">Edit</button> *@
+                            @* <button class="btn btn-danger" @onclick="() => OnDeleteActivity(activity.ActivityId)">Delete</button> *@
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    }
+</div>
+
+@code {
+    [Parameter] public List<ActivityDto> Activities { get; set; }
+    [Parameter] public List<ModuleDto> Modules { get; set; }
+    [Parameter] public EventCallback<int> OnDeleteActivity { get; set; }
+    [Parameter] public EventCallback OnCreateActivity { get; set; }
+    [Parameter] public EventCallback<ActivityDto> OnEditActivity { get; set; }
+
+    private string GetModuleName(int moduleId)
+    {
+        var module = Modules.FirstOrDefault(m => m.ModuleId == moduleId);
+        return module?.Name ?? "N/A";
+    }
+}
